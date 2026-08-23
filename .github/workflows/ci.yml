@@ -28,6 +28,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Reject user-specific macOS paths
+        run: |
+          macos_user_root="$(printf '/%s/' Users)"
+          if git grep -nF "$macos_user_root"; then
+            echo 'Tracked files must not contain user-specific macOS paths.' >&2
+            exit 1
+          fi
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94.0
         with:

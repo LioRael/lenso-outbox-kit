@@ -69,10 +69,10 @@ Adapter.
 ## Verification
 
 ```sh
-/Users/leosouthey/Projects/framework/.lenso-tools/bin/lenso-cargo fmt --all -- --check
-/Users/leosouthey/Projects/framework/.lenso-tools/bin/lenso-cargo check --locked --all-targets
-/Users/leosouthey/Projects/framework/.lenso-tools/bin/lenso-cargo test --locked
-/Users/leosouthey/Projects/framework/.lenso-tools/bin/lenso-cargo clippy --locked --all-targets -- -D warnings
+cargo fmt --all -- --check
+cargo check --locked --all-targets
+cargo test --locked
+cargo clippy --locked --all-targets -- -D warnings
 ```
 
 The PostgreSQL acceptance test runs when `LENSO_OUTBOX_TEST_URL` is set. CI
