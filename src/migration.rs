@@ -1,7 +1,7 @@
-/// PostgreSQL migration installed inside the owning Module's private schema.
+/// `PostgreSQL` migration installed inside the owning Module's private schema.
 ///
 /// The SQL is intentionally schema-unqualified. The owning Module must run it
-/// through its own `lenso-postgres-kit` `SchemaPlan`, using a PostgreSQL role
+/// through its own `lenso-postgres-kit` `SchemaPlan`, using a `PostgreSQL` role
 /// that owns only that schema.
 pub const POSTGRES_MIGRATION_SQL: &str = r"
 CREATE TABLE lenso_outbox_events (

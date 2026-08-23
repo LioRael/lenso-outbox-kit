@@ -1,4 +1,4 @@
-//! Transactional Outbox mechanics for Module-owned PostgreSQL state.
+//! Transactional Outbox mechanics for Module-owned `PostgreSQL` state.
 //!
 //! The owning Module installs [`POSTGRES_MIGRATION_SQL`] in its private schema,
 //! calls [`OutboxStore::enqueue`] through the same transaction as its business
