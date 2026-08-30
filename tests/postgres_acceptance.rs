@@ -36,7 +36,7 @@ async fn business_state_and_event_commit_or_rollback_together() {
         .await
         .expect("insert business state");
     assert_eq!(
-        OutboxStore::enqueue(rolled_back.as_mut(), &event)
+        OutboxStore::enqueue(&mut rolled_back, &event)
             .await
             .expect("enqueue event"),
         EnqueueOutcome::Inserted
@@ -63,14 +63,14 @@ async fn business_state_and_event_commit_or_rollback_together() {
         .execute(committed.as_mut())
         .await
         .expect("insert business state");
-    OutboxStore::enqueue(committed.as_mut(), &event)
+    OutboxStore::enqueue(&mut committed, &event)
         .await
         .expect("enqueue committed event");
     committed.commit().await.expect("commit transaction");
 
     let mut duplicate = database.pool().begin().await.expect("begin duplicate");
     assert_eq!(
-        OutboxStore::enqueue(duplicate.as_mut(), &event)
+        OutboxStore::enqueue(&mut duplicate, &event)
             .await
             .expect("exact duplicate is idempotent"),
         EnqueueOutcome::AlreadyPresent
@@ -87,7 +87,7 @@ async fn business_state_and_event_commit_or_rollback_together() {
     .with_subject("order-42")
     .expect("valid subject");
     let mut conflict = database.pool().begin().await.expect("begin conflict");
-    let conflict_result = OutboxStore::enqueue(conflict.as_mut(), &conflicting).await;
+    let conflict_result = OutboxStore::enqueue(&mut conflict, &conflicting).await;
     assert!(matches!(
         conflict_result,
         Err(OutboxError::EventIdentityConflict(id)) if id == event.id()
@@ -270,7 +270,7 @@ fn relay(pool: &PgPool, max_attempts: u32) -> OutboxRelay {
 async fn enqueue_committed(pool: &PgPool, event_type: &str) -> NewEvent {
     let event = NewEvent::json(event_type, &serde_json::json!({"value": 42})).expect("valid event");
     let mut transaction = pool.begin().await.expect("begin enqueue");
-    OutboxStore::enqueue(transaction.as_mut(), &event)
+    OutboxStore::enqueue(&mut transaction, &event)
         .await
         .expect("enqueue event");
     transaction.commit().await.expect("commit event");

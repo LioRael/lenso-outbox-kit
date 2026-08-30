@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use serde_json::Value;
-use sqlx::{PgConnection, PgPool, Row};
+use sqlx::{PgPool, Postgres, Row, Transaction};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
@@ -29,11 +29,28 @@ impl OutboxStore {
 
     /// Persist an event through the caller's active business transaction.
     ///
-    /// Passing `transaction.as_mut()` keeps the business mutation and event
-    /// atomic. Supplying the same identity and immutable content is
-    /// idempotent; reusing an identity with different content fails closed.
+    /// Supplying the same identity and immutable content is idempotent; reusing
+    /// an identity with different content fails closed.
+    ///
+    /// A raw pooled connection is rejected at compile time:
+    ///
+    /// ```compile_fail,E0308
+    /// use lenso_outbox_kit::{NewEvent, OutboxStore};
+    ///
+    /// # async fn raw_connection_is_rejected(
+    /// #     connection: &mut sqlx::PgConnection,
+    /// # ) -> Result<(), Box<dyn std::error::Error>> {
+    /// let event = NewEvent::new(
+    ///     "orders.order-accepted.v1",
+    ///     "application/json",
+    ///     br#"{\"orderId\":\"order-42\"}"#.to_vec(),
+    /// )?;
+    /// OutboxStore::enqueue(connection, &event).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn enqueue(
-        connection: &mut PgConnection,
+        transaction: &mut Transaction<'_, Postgres>,
         event: &NewEvent,
     ) -> OutboxResult<EnqueueOutcome> {
         let metadata = Value::Object(event.metadata().clone());
@@ -61,7 +78,7 @@ impl OutboxStore {
         .bind(&metadata)
         .bind(event.correlation_id())
         .bind(event.causation_id())
-        .execute(&mut *connection)
+        .execute(&mut **transaction)
         .await?;
 
         if inserted.rows_affected() == 1 {
@@ -77,7 +94,7 @@ impl OutboxStore {
             ",
         )
         .bind(event.id().as_uuid())
-        .fetch_one(&mut *connection)
+        .fetch_one(&mut **transaction)
         .await?;
 
         let same_content = existing.try_get::<String, _>("event_type")? == event.event_type()
