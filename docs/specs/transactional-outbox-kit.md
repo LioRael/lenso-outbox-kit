@@ -57,7 +57,7 @@ Module implementations.
 
 | Capability | Owner | Authoritative data | Public surface | Collaboration | Reason |
 |---|---|---|---|---|---|
-| Transactional enqueue | Emitting Module through the kit | Event identity, immutable envelope, delivery state in the Module schema | `NewEvent`, `OutboxStore::enqueue` | Caller passes its active `PgConnection` | Preserves one local transaction and private schema |
+| Transactional enqueue | Emitting Module through the kit | Event identity, immutable envelope, delivery state in the Module schema | `NewEvent`, `OutboxStore::enqueue` | Caller passes its active `Transaction<Postgres>` | Preserves one local transaction and private schema |
 | Relay lifecycle | Emitting Module through the kit | Lease, attempt, retry, delivery, and dead-letter state | `OutboxRelay::drain_once`, `RelayConfig` | Calls one explicit `OutboxSink` | Keeps scheduling and transport outside Kernel |
 | Delivery | Concrete Adapter | External acknowledgement and infrastructure policy | `OutboxSink`, classified `DeliveryOutcome` | Receives `ClaimedEvent` | Transport failures need adapter-owned classification |
 | Recovery | Emitting Module operator path | Replay count and current delivery state | `OutboxStore::state`, `requeue_dead_letter` | Explicit operator action | Prevents hidden or automatic replay |

@@ -46,7 +46,7 @@ let mut transaction = pool.begin().await?;
 
 sqlx::query("INSERT INTO orders (id, state) VALUES ($1, 'accepted')")
     .bind("order-42")
-    .execute(transaction.as_mut())
+    .execute(&mut *transaction)
     .await?;
 
 let event = NewEvent::json(
@@ -55,7 +55,7 @@ let event = NewEvent::json(
 )?
 .with_subject("order-42")?;
 
-OutboxStore::enqueue(transaction.as_mut(), &event).await?;
+OutboxStore::enqueue(&mut transaction, &event).await?;
 transaction.commit().await?;
 # Ok(())
 # }

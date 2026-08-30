@@ -7,8 +7,8 @@ schema and enqueues through the same transaction as its business state.
 Hard invariants:
 
 - never introduce a global or cross-Module Outbox table;
-- never accept a pool when enqueueing transactionally; require the caller's
-  active PostgreSQL connection;
+- never accept a pool or raw connection when enqueueing; require the caller's
+  active PostgreSQL transaction;
 - never claim exactly-once delivery;
 - preserve one immutable event identity and payload across retries;
 - fence acknowledgements with an opaque lease token;
