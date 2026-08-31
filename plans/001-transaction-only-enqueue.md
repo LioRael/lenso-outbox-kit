@@ -38,8 +38,8 @@ Out of scope: dispatcher semantics, event schema, or exactly-once guarantees.
 
 ## Verification
 
-- `lenso-cargo test --workspace --all-targets` from this repo -> all pass.
-- `lenso-cargo check --workspace --all-targets` -> exit 0.
+- `cargo test --workspace --all-targets` from this repo -> all pass.
+- `cargo check --workspace --all-targets` -> exit 0.
 - `git diff --check` -> no output.
 
 ## STOP conditions
